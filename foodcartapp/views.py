@@ -2,9 +2,9 @@ import json
 
 from django.http import JsonResponse
 from django.templatetags.static import static
+from rest_framework.decorators import api_view
 
-
-from .models import Product, Order, OrderItem
+from .models import Order, OrderItem, Product
 
 
 def banners_list_api(request):
@@ -59,8 +59,9 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
-    response = json.loads(request.body.decode())
+    response = request.data
     order = Order.objects.create(
         address=response['address'],
         first_name=response['firstname'],
