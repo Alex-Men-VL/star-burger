@@ -1,8 +1,8 @@
-import json
-
 from django.http import JsonResponse
 from django.templatetags.static import static
+from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import Order, OrderItem, Product
 
@@ -62,11 +62,61 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     response = request.data
+    if (not (address := response.get('address')) or
+            not isinstance(address, str)):
+        return Response(
+            {"error": "address key not presented or not str"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    elif (not (first_name := response.get('firstname')) or
+          not isinstance(first_name, str)):
+        return Response(
+            {"error": "firstname key not presented or not str"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    elif (not (last_name := response.get('lastname')) or
+          not isinstance(last_name, str)):
+        return Response(
+            {"error": "lastname key not presented or not str"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    elif (not (phonenumber := response.get('phonenumber')) or
+          not isinstance(phonenumber, str)):
+        return Response(
+            {"error": "phonenumber key not presented or not str"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    elif (not (products := response.get('products')) or
+          not isinstance(products, list)):
+        return Response(
+            {"error": "products key not presented or not list"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    product_quantities = [product.get('quantity') for product in products]
+    if (not all(product_quantities) or
+        not all(isinstance(quantity, int) for quantity in product_quantities) or
+            any(quantity < 1 for quantity in product_quantities)):
+        return Response(
+            {"error": "quantity key not presented or incorrect"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    product_ids = [product.get('product') for product in products]
+    products = Product.objects.all()
+    possible_product_ids = [product.id for product in products]
+    if (not all(product_ids) or
+            any(product_id not in possible_product_ids
+                for product_id in product_ids)):
+        return Response(
+            {"error": "product key not presented or incorrect"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     order = Order.objects.create(
-        address=response['address'],
-        first_name=response['firstname'],
-        last_name=response['lastname'],
-        phonenumber=response['phonenumber']
+        address=address,
+        first_name=first_name,
+        last_name=last_name,
+        phonenumber=phonenumber
     )
     for position in response['products']:
         product = Product.objects.get(pk=position['product'])
@@ -76,4 +126,6 @@ def register_order(request):
             count=position['quantity']
         )
         order_item.save()
-    return JsonResponse({})
+    return Response(
+        {"success": "order added"}
+    )
