@@ -135,7 +135,7 @@ def register_order(request):
         order_item = OrderItem(
             order=order,
             product=product,
-            count=position['quantity']
+            quantity=position['quantity']
         )
         order_item.save()
     return Response(

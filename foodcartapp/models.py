@@ -167,7 +167,7 @@ class OrderItem(models.Model):
         on_delete=models.CASCADE,
         verbose_name='товар'
     )
-    count = models.IntegerField(
+    quantity = models.IntegerField(
         'количество'
     )
 
