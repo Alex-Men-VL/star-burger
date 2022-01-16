@@ -130,11 +130,11 @@ class Order(models.Model):
         'адрес',
         max_length=100
     )
-    first_name = models.CharField(
+    firstname = models.CharField(
         'имя заказчика',
         max_length=20
     )
-    last_name = models.CharField(
+    lastname = models.CharField(
         'фамилия заказчика',
         max_length=20
     )

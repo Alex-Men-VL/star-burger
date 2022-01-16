@@ -69,14 +69,14 @@ def register_order(request):
             {"error": "address key not presented or not str"},
             status=status.HTTP_400_BAD_REQUEST
         )
-    elif (not (first_name := response.get('firstname')) or
-          not isinstance(first_name, str)):
+    elif (not (firstname := response.get('firstname')) or
+          not isinstance(firstname, str)):
         return Response(
             {"error": "firstname key not presented or not str"},
             status=status.HTTP_400_BAD_REQUEST
         )
-    elif (not (last_name := response.get('lastname')) or
-          not isinstance(last_name, str)):
+    elif (not (lastname := response.get('lastname')) or
+          not isinstance(lastname, str)):
         return Response(
             {"error": "lastname key not presented or not str"},
             status=status.HTTP_400_BAD_REQUEST
@@ -126,8 +126,8 @@ def register_order(request):
         )
     order = Order.objects.create(
         address=address,
-        first_name=first_name,
-        last_name=last_name,
+        firstname=firstname,
+        lastname=lastname,
         phonenumber=phonenumber
     )
     for position in response['products']:
