@@ -1,3 +1,4 @@
+import phonenumbers
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework import status
@@ -92,6 +93,17 @@ def register_order(request):
             {"error": "products key not presented or not list"},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+    pure_phonenumber = phonenumbers.parse(phonenumber, 'RU')
+    if not phonenumbers.is_valid_number(pure_phonenumber):
+        return Response(
+            {"error": "non-existent phone number"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    phonenumber = phonenumbers.format_number(
+        pure_phonenumber,
+        phonenumbers.PhoneNumberFormat.E164
+    )
 
     product_quantities = [product.get('quantity') for product in products]
     if (not all(product_quantities) or
