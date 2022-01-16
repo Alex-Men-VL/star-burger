@@ -1,9 +1,14 @@
 import phonenumbers
 from django.http import JsonResponse
 from django.templatetags.static import static
+from phonenumber_field.modelfields import PhoneNumberField
+from phonenumbers.phonenumberutil import NumberParseException
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
+from rest_framework.relations import PrimaryKeyRelatedField, RelatedField
 from rest_framework.response import Response
+from rest_framework.serializers import Serializer, ModelSerializer
 
 from .models import Order, OrderItem, Product
 
@@ -60,84 +65,70 @@ def product_list_api(request):
     })
 
 
+class OrderItemSerializer(ModelSerializer):
+    product = PrimaryKeyRelatedField(queryset=Product.objects.all())
+
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity']
+
+    def validate(self, data):
+        if data['quantity'] < 1:
+            raise ValidationError(
+                {"quantity": "Недопустимое количество товара"}
+            )
+        return data
+
+
+class OrderSerializer(ModelSerializer):
+    phonenumber = PhoneNumberField()
+    products = OrderItemSerializer(many=True, allow_empty=False)
+
+    class Meta:
+        model = Order
+        fields = ['address', 'firstname', 'lastname',
+                  'phonenumber', 'products']
+        extra_kwargs = {
+            "phonenumber": {
+                "validators": [],
+            },
+        }
+
+    def validate(self, data):
+        try:
+            pure_phonenumber = phonenumbers.parse(data['phonenumber'], 'RU')
+        except NumberParseException:
+            raise ValidationError(
+                {"phonenumber": "Некорректный номер телефона"}
+            )
+        if not phonenumbers.is_valid_number(pure_phonenumber):
+            raise ValidationError(
+                {"phonenumber": "Некорректный номер телефона"}
+            )
+        data['phonenumber'] = phonenumbers.format_number(
+            pure_phonenumber,
+            phonenumbers.PhoneNumberFormat.E164
+        )
+        return data
+
+    def create(self, validated_data):
+        order = Order.objects.create(
+            address=validated_data['address'],
+            firstname=validated_data['firstname'],
+            lastname=validated_data['lastname'],
+            phonenumber=validated_data['phonenumber']
+        )
+        order_items = [OrderItem(order=order, **product) for product in
+                       validated_data['products']]
+        OrderItem.objects.bulk_create(order_items)
+        return order
+
+
 @api_view(['POST'])
 def register_order(request):
-    response = request.data
-    if (not (address := response.get('address')) or
-            not isinstance(address, str)):
-        return Response(
-            {"error": "address key not presented or not str"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    elif (not (firstname := response.get('firstname')) or
-          not isinstance(firstname, str)):
-        return Response(
-            {"error": "firstname key not presented or not str"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    elif (not (lastname := response.get('lastname')) or
-          not isinstance(lastname, str)):
-        return Response(
-            {"error": "lastname key not presented or not str"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    elif (not (phonenumber := response.get('phonenumber')) or
-          not isinstance(phonenumber, str)):
-        return Response(
-            {"error": "phonenumber key not presented or not str"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    elif (not (products := response.get('products')) or
-          not isinstance(products, list)):
-        return Response(
-            {"error": "products key not presented or not list"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    pure_phonenumber = phonenumbers.parse(phonenumber, 'RU')
-    if not phonenumbers.is_valid_number(pure_phonenumber):
-        return Response(
-            {"error": "non-existent phone number"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    phonenumber = phonenumbers.format_number(
-        pure_phonenumber,
-        phonenumbers.PhoneNumberFormat.E164
-    )
-
-    product_quantities = [product.get('quantity') for product in products]
-    if (not all(product_quantities) or
-        not all(isinstance(quantity, int) for quantity in product_quantities) or
-            any(quantity < 1 for quantity in product_quantities)):
-        return Response(
-            {"error": "quantity key not presented or incorrect"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    product_ids = [product.get('product') for product in products]
-    products = Product.objects.all()
-    possible_product_ids = [product.id for product in products]
-    if (not all(product_ids) or
-            any(product_id not in possible_product_ids
-                for product_id in product_ids)):
-        return Response(
-            {"error": "product key not presented or incorrect"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    order = Order.objects.create(
-        address=address,
-        firstname=firstname,
-        lastname=lastname,
-        phonenumber=phonenumber
-    )
-    for position in response['products']:
-        product = Product.objects.get(pk=position['product'])
-        order_item = OrderItem(
-            order=order,
-            product=product,
-            quantity=position['quantity']
-        )
-        order_item.save()
+    serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
     return Response(
-        {"success": "order added"}
+        {"success": "Заказ добавлен"}
     )
