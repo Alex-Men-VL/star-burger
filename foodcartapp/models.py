@@ -127,6 +127,10 @@ class RestaurantMenuItem(models.Model):
 
 class OrderQuerySet(models.QuerySet):
 
+    def not_processed(self):
+        not_processed_orders = self.filter(status=Order.NOT_PROCESSED)
+        return not_processed_orders
+
     def price(self):
         orders = self
         items = OrderItem.objects.filter(
@@ -138,6 +142,15 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+    NOT_PROCESSED = 'NP'
+    PROCESSED = 'P'
+    DELIVERED = 'D'
+    ORDER_STATUS_CHOICE = [
+        (NOT_PROCESSED, 'не обработан'),
+        (PROCESSED, 'обработан'),
+        (DELIVERED, 'доставлен'),
+    ]
+
     address = models.CharField(
         'адрес',
         max_length=100
@@ -158,6 +171,12 @@ class Order(models.Model):
         related_name='orders',
         verbose_name='товары',
         through='OrderItem',
+    )
+    status = models.CharField(
+        'статус заказа',
+        max_length=12,
+        choices=ORDER_STATUS_CHOICE,
+        default=NOT_PROCESSED,
     )
     objects = OrderQuerySet.as_manager()
 
