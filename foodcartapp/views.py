@@ -1,4 +1,5 @@
 import phonenumbers
+from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 from phonenumber_field.modelfields import PhoneNumberField
@@ -113,6 +114,7 @@ class OrderSerializer(ModelSerializer):
         )
         return data
 
+    @transaction.atomic
     def create(self, validated_data):
         order = Order.objects.create(
             address=validated_data['address'],
