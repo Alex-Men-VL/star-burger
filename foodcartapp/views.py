@@ -81,18 +81,16 @@ class OrderItemSerializer(ModelSerializer):
 
 
 class OrderSerializer(ModelSerializer):
-    phonenumber = PhoneNumberField()
-    products = OrderItemSerializer(many=True, allow_empty=False)
+    phonenumber = PhoneNumberField(validators=[])
+    products = OrderItemSerializer(many=True,
+                                   allow_empty=False,
+                                   write_only=True)
 
     class Meta:
         model = Order
-        fields = ['address', 'firstname', 'lastname',
+        fields = ['id', 'address', 'firstname', 'lastname',
                   'phonenumber', 'products']
-        extra_kwargs = {
-            "phonenumber": {
-                "validators": [],
-            },
-        }
+        read_only_fields = ['id']
 
     def validate(self, data):
         try:
@@ -129,6 +127,4 @@ def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     serializer.save()
-    return Response(
-        {"success": "Заказ добавлен"}
-    )
+    return Response(serializer.data)
