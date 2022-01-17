@@ -3,12 +3,11 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from phonenumber_field.modelfields import PhoneNumberField
 from phonenumbers.phonenumberutil import NumberParseException
-from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
-from rest_framework.relations import PrimaryKeyRelatedField, RelatedField
+from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer, ModelSerializer
+from rest_framework.serializers import ModelSerializer
 
 from .models import Order, OrderItem, Product
 
