@@ -80,7 +80,7 @@ class OrderItemSerializer(ModelSerializer):
 
 
 class OrderSerializer(ModelSerializer):
-    phonenumber = PhoneNumberField(validators=[])
+    phonenumber = PhoneNumberField()
     products = OrderItemSerializer(many=True,
                                    allow_empty=False,
                                    write_only=True)
@@ -90,6 +90,11 @@ class OrderSerializer(ModelSerializer):
         fields = ['id', 'address', 'firstname', 'lastname',
                   'phonenumber', 'products']
         read_only_fields = ['id']
+        extra_kwargs = {
+            "phonenumber": {
+                "validators": [],
+            }
+        }
 
     def validate(self, data):
         try:
@@ -124,6 +129,7 @@ class OrderSerializer(ModelSerializer):
 @api_view(['POST'])
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
+    print(repr(OrderSerializer()))
     serializer.is_valid(raise_exception=True)
     serializer.save()
     return Response(serializer.data)
