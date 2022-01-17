@@ -6,9 +6,9 @@ from django.contrib.auth.decorators import user_passes_test
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
+from rest_framework.serializers import ModelSerializer
 
-
-from foodcartapp.models import Product, Restaurant
+from foodcartapp.models import Order, Product, Restaurant
 
 
 class Login(forms.Form):
@@ -95,8 +95,18 @@ def view_restaurants(request):
     })
 
 
+class OrderSerializer(ModelSerializer):
+
+    class Meta:
+        model = Order
+        fields = ['id', 'address', 'firstname', 'lastname', 'phonenumber']
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    return render(request, template_name='order_items.html', context={
-        # TODO заглушка для нереализованного функционала
-    })
+    orders = Order.objects.values('id', 'address', 'firstname',
+                                  'lastname', 'phonenumber')
+    context = {
+        "order_items": list(orders),
+    }
+    return render(request, template_name='order_items.html', context=context)
