@@ -102,11 +102,20 @@ class OrderSerializer(ModelSerializer):
         fields = ['id', 'address', 'firstname', 'lastname', 'phonenumber']
 
 
+def serialize_order(order):
+    return {
+        'id': order.id,
+        'price': order.total_price,
+        'name': f'{order.firstname} {order.lastname}',
+        'address': order.address,
+        'phonenumber': order.phonenumber
+    }
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.values('id', 'address', 'firstname',
-                                  'lastname', 'phonenumber')
+    orders = Order.objects.price()
     context = {
-        "order_items": list(orders),
+        "order_items": [serialize_order(order) for order in orders],
     }
     return render(request, template_name='order_items.html', context=context)
