@@ -131,7 +131,7 @@ class OrderQuerySet(models.QuerySet):
         orders = self
         items = OrderItem.objects.filter(
             order=OuterRef('pk')
-        ).price().values('order').annotate(
+        ).values('order').annotate(
             total_price=Sum('price')).values('total_price')
         orders = orders.annotate(total_price=Subquery(items))
         return orders
@@ -169,15 +169,6 @@ class Order(models.Model):
         return f'{self.firstname} {self.lastname} {self.address}'
 
 
-class OrderItemQuerySet(models.QuerySet):
-
-    def price(self):
-        order_item = self.annotate(
-            price=F('product__price') * F('quantity')
-        )
-        return order_item
-
-
 class OrderItem(models.Model):
     order = models.ForeignKey(
         Order,
@@ -192,7 +183,12 @@ class OrderItem(models.Model):
     quantity = models.IntegerField(
         'количество'
     )
-    objects = OrderItemQuerySet.as_manager()
+    price = models.DecimalField(
+        'стоимость позиции',
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
 
     def __str__(self):
         return f'{self.product.name} {self.order.firstname} ' \

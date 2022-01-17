@@ -120,8 +120,11 @@ class OrderSerializer(ModelSerializer):
             lastname=validated_data['lastname'],
             phonenumber=validated_data['phonenumber']
         )
-        order_items = [OrderItem(order=order, **product) for product in
-                       validated_data['products']]
+        order_items = [OrderItem(
+            order=order,
+            price=product['product'].price * product['quantity'],
+            **product
+        ) for product in validated_data['products']]
         OrderItem.objects.bulk_create(order_items)
         return order
 
@@ -129,7 +132,6 @@ class OrderSerializer(ModelSerializer):
 @api_view(['POST'])
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
-    print(repr(OrderSerializer()))
     serializer.is_valid(raise_exception=True)
     serializer.save()
     return Response(serializer.data)
