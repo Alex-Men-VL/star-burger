@@ -138,11 +138,11 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
-    NOT_PROCESSED = 'NP'
+    UNPROCESSED = 'NP'
     PROCESSED = 'P'
     DELIVERED = 'D'
     ORDER_STATUS_CHOICE = [
-        (NOT_PROCESSED, 'не обработан'),
+        (UNPROCESSED, 'не обработан'),
         (PROCESSED, 'обработан'),
         (DELIVERED, 'доставлен'),
     ]
@@ -172,7 +172,7 @@ class Order(models.Model):
         'статус заказа',
         max_length=12,
         choices=ORDER_STATUS_CHOICE,
-        default=NOT_PROCESSED,
+        default=UNPROCESSED,
     )
     objects = OrderQuerySet.as_manager()
 
