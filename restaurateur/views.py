@@ -114,7 +114,9 @@ def serialize_order(order):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.not_processed().price().order_by('-pk')
+    orders = Order.objects.filter(
+        status=Order.NOT_PROCESSED
+    ).price().order_by('-pk')
     context = {
         "order_items": [serialize_order(order) for order in orders],
     }

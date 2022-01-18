@@ -127,10 +127,6 @@ class RestaurantMenuItem(models.Model):
 
 class OrderQuerySet(models.QuerySet):
 
-    def not_processed(self):
-        not_processed_orders = self.filter(status=Order.NOT_PROCESSED)
-        return not_processed_orders
-
     def price(self):
         orders = self
         items = OrderItem.objects.filter(
