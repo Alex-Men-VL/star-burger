@@ -173,6 +173,7 @@ class Order(models.Model):
         max_length=12,
         choices=ORDER_STATUS_CHOICE,
         default=UNPROCESSED,
+        db_index=True,
     )
     objects = OrderQuerySet.as_manager()
 
