@@ -5,6 +5,8 @@ from django.utils.encoding import iri_to_uri
 from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from coordinates.geocoder import add_coordinates
+from coordinates.models import Coordinate
 from .models import Product
 from .models import ProductCategory
 from .models import Restaurant
@@ -32,6 +34,11 @@ class RestaurantAdmin(admin.ModelAdmin):
     inlines = [
         RestaurantMenuItemInline
     ]
+
+    def save_model(self, request, obj, form, change):
+        if not Coordinate.objects.filter(address=obj.address).exists():
+            add_coordinates(obj.address)
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Product)
@@ -123,6 +130,8 @@ class OrderAdmin(admin.ModelAdmin):
     ]
 
     def response_post_save_change(self, request, obj):
+        if not Coordinate.objects.filter(address=obj.address).exists():
+            add_coordinates(obj.address)
         if 'next' not in request.GET:
             return super().response_post_save_change(request, obj)
         if url_has_allowed_host_and_scheme(request.GET['next'], None):

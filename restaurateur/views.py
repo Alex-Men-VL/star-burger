@@ -1,13 +1,14 @@
 from django import forms
-from django.shortcuts import redirect, render
-from django.views import View
-from django.urls import reverse_lazy
-from django.contrib.auth.decorators import user_passes_test
-
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
+from django.views import View
+from geopy import distance
 from rest_framework.serializers import ModelSerializer
 
+from coordinates.models import Coordinate
 from foodcartapp.models import Order, Product, Restaurant, RestaurantMenuItem
 
 
@@ -102,7 +103,51 @@ class OrderSerializer(ModelSerializer):
         fields = ['id', 'address', 'firstname', 'lastname', 'phonenumber']
 
 
-def serialize_order(order):
+def get_order_distance(order_address, restaurant_address, coordinates):
+    order_coordinates = list(
+        filter(
+            lambda order: (order['address'] == order_address),
+            coordinates
+        )
+    )[0]
+    restaurant_coordinates = list(
+        filter(
+            lambda restaurant: (
+                restaurant['address'] == restaurant_address
+            ),
+            coordinates
+        )
+    )[0]
+    order_distance = distance.distance(
+        (order_coordinates['lat'], order_coordinates['lon']),
+        (restaurant_coordinates['lat'], restaurant_coordinates['lon'])
+    )
+    return order_distance.km
+
+
+def serialize_order(order, product_for_restaurants, restaurants, coordinates):
+    products = order.products.all()
+    suitable_restaurants_ids = product_for_restaurants[products[0].id]
+
+    for product in products[1:]:
+        suitable_restaurants_ids = list(
+            set(suitable_restaurants_ids)
+            & set(product_for_restaurants[product.id])
+        )
+
+    suitable_restaurants = []
+    for restaurant_id in suitable_restaurants_ids:
+        restaurant_attrs = list(
+            filter(
+                lambda restaurant: (restaurant['id'] == restaurant_id),
+                restaurants
+            )
+        )[0]
+        order_distance = get_order_distance(order.address,
+                                            restaurant_attrs['address'],
+                                            coordinates)
+        suitable_restaurant = (restaurant_attrs["name"], order_distance)
+        suitable_restaurants.append(suitable_restaurant)
     return {
         'id': order.id,
         'price': order.total_price,
@@ -111,7 +156,7 @@ def serialize_order(order):
         'phonenumber': order.phonenumber,
         'comment': order.comment,
         'payment': order.get_payment_method_display(),
-        'restaurants': order.restaurants
+        'restaurants': suitable_restaurants
     }
 
 
@@ -123,23 +168,20 @@ def view_orders(request):
 
     restaurant_menu_items = RestaurantMenuItem.objects.all().values_list(
         'product',
-        'restaurant__name'
+        'restaurant'
     )
     product_for_restaurants = {}
     for item in restaurant_menu_items:
         product_for_restaurants.setdefault(item[0], []).append(item[1])
 
-    for order in orders:
-        products = order.products.all()
-        restaurants = product_for_restaurants[products[0].id]
-
-        for product in products[1:]:
-            restaurants = list(
-                set(restaurants) & set(product_for_restaurants[product.id])
-            )
-        order.restaurants = restaurants
-
+    restaurants = Restaurant.objects.values('id', 'address', 'name')
+    coordinates = Coordinate.objects.values('address', 'lat', 'lon')
     context = {
-        "order_items": [serialize_order(order) for order in orders],
+        "order_items": [serialize_order(
+            order,
+            product_for_restaurants,
+            restaurants,
+            coordinates
+        ) for order in orders],
     }
     return render(request, template_name='order_items.html', context=context)

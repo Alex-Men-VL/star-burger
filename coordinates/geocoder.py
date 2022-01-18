@@ -1,9 +1,12 @@
 import requests
 from django.conf import settings
 
+from coordinates.models import Coordinate
 
-def fetch_coordinates(apikey, address):
+
+def fetch_coordinates(address):
     url = 'https://geocode-maps.yandex.ru/1.x'
+    apikey = settings.YANDEX_API_KEY
     params = {
         'geocode': address,
         'apikey': apikey,
@@ -21,11 +24,17 @@ def fetch_coordinates(apikey, address):
 
     most_relevant_place = found_places[0]
     lon, lat = most_relevant_place['GeoObject']['Point']['pos'].split(" ")
-    print(lon, lat)
+    return lon, lat
 
 
-if __name__ == '__main__':
-    # apikey = settings.YANDEX_API_KEY
-    apikey = 'a71fc090-54e9-439a-9a79-4c5e37db5dfc'
-    address = 'Москва, ул. Льва Толстого, 16'
-    fetch_coordinates(apikey, address)
+def add_coordinates(address):
+    coordinates = {}
+    try:
+        lon, lat = fetch_coordinates(address)
+    except Exception:
+        pass
+    else:
+        coordinates['lon'] = lon
+        coordinates['lat'] = lat
+        coordinates['status'] = Coordinate.DEFINED
+    Coordinate.objects.create(address=address, **coordinates)

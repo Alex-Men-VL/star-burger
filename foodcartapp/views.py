@@ -10,6 +10,8 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 
+from coordinates.geocoder import add_coordinates
+from coordinates.models import Coordinate
 from .models import Order, OrderItem, Product
 
 
@@ -116,12 +118,15 @@ class OrderSerializer(ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        address = validated_data['address']
         order = Order.objects.create(
-            address=validated_data['address'],
+            address=address,
             firstname=validated_data['firstname'],
             lastname=validated_data['lastname'],
             phonenumber=validated_data['phonenumber']
         )
+        if not Coordinate.objects.filter(address=address).exists():
+            add_coordinates(address)
         order_items = [OrderItem(
             order=order,
             price=product['product'].price * product['quantity'],
