@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, OuterRef, Subquery, Sum
+from django.db.models import OuterRef, Subquery, Sum
+from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -196,6 +197,24 @@ class Order(models.Model):
         default=NOT_SPECIFIED,
         db_index=True,
     )
+    registered_at = models.DateTimeField(
+        'дата оформления',
+        default=timezone.now,
+        db_index=True
+    )
+    called_at = models.DateTimeField(
+        'дата звонка',
+        null=True,
+        blank=True,
+        db_index=True
+    )
+    delivered_at = models.DateTimeField(
+        'дата доставки',
+        null=True,
+        blank=True,
+        db_index=True
+    )
+
     objects = OrderQuerySet.as_manager()
 
     class Meta:
