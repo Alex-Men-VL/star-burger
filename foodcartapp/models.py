@@ -147,6 +147,15 @@ class Order(models.Model):
         (DELIVERED, 'доставлен'),
     ]
 
+    IN_CASH = 'CH'
+    BY_CARD = 'CD'
+    NOT_SPECIFIED = 'NS'
+    PAYMENT_METHOD_CHOICE = [
+        (IN_CASH, 'Наличностью'),
+        (BY_CARD, 'Электронно'),
+        (NOT_SPECIFIED, 'Не указано')
+    ]
+
     address = models.CharField(
         'адрес',
         max_length=100
@@ -173,6 +182,18 @@ class Order(models.Model):
         max_length=12,
         choices=ORDER_STATUS_CHOICE,
         default=UNPROCESSED,
+        db_index=True,
+    )
+    comment = models.TextField(
+        'комментарий',
+        default='',
+        blank=True
+    )
+    payment_method = models.CharField(
+        'способ оплаты',
+        max_length=12,
+        choices=PAYMENT_METHOD_CHOICE,
+        default=NOT_SPECIFIED,
         db_index=True,
     )
     objects = OrderQuerySet.as_manager()

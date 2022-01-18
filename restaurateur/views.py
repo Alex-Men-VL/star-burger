@@ -108,7 +108,9 @@ def serialize_order(order):
         'price': order.total_price,
         'name': f'{order.firstname} {order.lastname}',
         'address': order.address,
-        'phonenumber': order.phonenumber
+        'phonenumber': order.phonenumber,
+        'comment': order.comment,
+        'payment': order.get_payment_method_display()
     }
 
 
