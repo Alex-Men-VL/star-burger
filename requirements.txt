@@ -6,4 +6,4 @@ django-phonenumber-field==6.0.0
 djangorestframework==3.13.1
 requests==2.27.1
 geopy==2.2.0
-
+phonenumbers==8.12.41
