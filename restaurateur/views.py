@@ -118,6 +118,9 @@ def get_order_distance(order_address, restaurant_address, coordinates):
             coordinates
         )
     )[0]
+    if (order_coordinates['status'] == Coordinate.NOT_DEFINED
+            or restaurant_coordinates['status'] == Coordinate.NOT_DEFINED):
+        return None
     order_distance = distance.distance(
         (order_coordinates['lat'], order_coordinates['lon']),
         (restaurant_coordinates['lat'], restaurant_coordinates['lon'])
@@ -146,6 +149,12 @@ def serialize_order(order, product_for_restaurants, restaurants, coordinates):
         order_distance = get_order_distance(order.address,
                                             restaurant_attrs['address'],
                                             coordinates)
+        if order_distance:
+            order_distance = f'{order_distance:.3f} км.'
+
+        else:
+            print('тут')
+            order_distance = 'неизвестно'
         suitable_restaurant = (restaurant_attrs["name"], order_distance)
         suitable_restaurants.append(suitable_restaurant)
     return {
@@ -175,7 +184,7 @@ def view_orders(request):
         product_for_restaurants.setdefault(item[0], []).append(item[1])
 
     restaurants = Restaurant.objects.values('id', 'address', 'name')
-    coordinates = Coordinate.objects.values('address', 'lat', 'lon')
+    coordinates = Coordinate.objects.values('address', 'lat', 'lon', 'status')
     context = {
         "order_items": [serialize_order(
             order,
