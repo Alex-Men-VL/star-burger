@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 from rest_framework.serializers import ModelSerializer
 
-from foodcartapp.models import Order, Product, Restaurant
+from foodcartapp.models import Order, Product, Restaurant, RestaurantMenuItem
 
 
 class Login(forms.Form):
@@ -110,7 +110,8 @@ def serialize_order(order):
         'address': order.address,
         'phonenumber': order.phonenumber,
         'comment': order.comment,
-        'payment': order.get_payment_method_display()
+        'payment': order.get_payment_method_display(),
+        'restaurants': order.restaurants
     }
 
 
@@ -118,7 +119,26 @@ def serialize_order(order):
 def view_orders(request):
     orders = Order.objects.filter(
         status=Order.UNPROCESSED
-    ).price().order_by('-pk')
+    ).price().prefetch_related('products').order_by('-pk')
+
+    restaurant_menu_items = RestaurantMenuItem.objects.all().values_list(
+        'product',
+        'restaurant__name'
+    )
+    product_for_restaurants = {}
+    for item in restaurant_menu_items:
+        product_for_restaurants.setdefault(item[0], []).append(item[1])
+
+    for order in orders:
+        products = order.products.all()
+        restaurants = product_for_restaurants[products[0].id]
+
+        for product in products[1:]:
+            restaurants = list(
+                set(restaurants) & set(product_for_restaurants[product.id])
+            )
+        order.restaurants = restaurants
+
     context = {
         "order_items": [serialize_order(order) for order in orders],
     }
