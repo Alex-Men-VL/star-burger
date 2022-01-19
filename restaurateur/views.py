@@ -153,7 +153,6 @@ def serialize_order(order, product_for_restaurants, restaurants, coordinates):
             order_distance = f'{order_distance:.3f} км.'
 
         else:
-            print('тут')
             order_distance = 'неизвестно'
         suitable_restaurant = (restaurant_attrs["name"], order_distance)
         suitable_restaurants.append(suitable_restaurant)
