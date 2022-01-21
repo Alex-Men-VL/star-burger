@@ -185,8 +185,8 @@ def view_orders(request):
         'restaurant'
     )
     product_for_restaurants = {}
-    for item in restaurant_menu_items:
-        product_for_restaurants.setdefault(item[0], []).append(item[1])
+    for product_id, restaurant_id in restaurant_menu_items:
+        product_for_restaurants.setdefault(product_id, []).append(restaurant_id)
 
     restaurants = Restaurant.objects.values('id', 'address', 'name')
     places_addresses = get_used_addresses(orders, restaurants)
