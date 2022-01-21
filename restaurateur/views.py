@@ -168,6 +168,12 @@ def serialize_order(order, product_for_restaurants, restaurants, coordinates):
     }
 
 
+def get_used_addresses(orders, restaurants):
+    addresses = [order.address for order in orders]
+    addresses += [restaurant['address'] for restaurant in restaurants]
+    return addresses
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.filter(
@@ -183,7 +189,10 @@ def view_orders(request):
         product_for_restaurants.setdefault(item[0], []).append(item[1])
 
     restaurants = Restaurant.objects.values('id', 'address', 'name')
-    coordinates = Coordinate.objects.values('address', 'lat', 'lon', 'status')
+    places_addresses = get_used_addresses(orders, restaurants)
+    coordinates = Coordinate.objects.filter(
+        address__in=places_addresses
+    ).values('address', 'lat', 'lon', 'status')
     context = {
         "order_items": [serialize_order(
             order,
