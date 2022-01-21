@@ -172,7 +172,7 @@ def serialize_order(order, product_for_restaurants, restaurants, coordinates):
 def view_orders(request):
     orders = Order.objects.filter(
         status=Order.UNPROCESSED
-    ).price().prefetch_related('products').order_by('-pk')
+    ).get_orders_with_price().prefetch_related('products').order_by('-pk')
 
     restaurant_menu_items = RestaurantMenuItem.objects.all().values_list(
         'product',
