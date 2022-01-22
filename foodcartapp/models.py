@@ -128,11 +128,40 @@ class RestaurantMenuItem(models.Model):
 
 class OrderQuerySet(models.QuerySet):
 
-    def get_orders_with_price(self):
+    def fetch_with_price(self):
         orders_with_price = self.annotate(
             total_price=Sum('order_items__price')
         )
         return orders_with_price
+
+    def fetch_with_suitable_restaurants(self):
+        orders = self.prefetch_related('products').order_by('-pk')
+        products = []
+        for order in orders:
+            products += list(order.products.all())
+
+        restaurant_menu_items = RestaurantMenuItem.objects.filter(
+            product__in=products
+        ).values_list(
+            'product',
+            'restaurant'
+        )
+        product_for_restaurants = {}
+        for product_id, restaurant_id in restaurant_menu_items:
+            product_for_restaurants.setdefault(product_id, []).append(
+                restaurant_id
+            )
+        for order in orders:
+            products = order.products.all()
+            suitable_restaurants_ids = product_for_restaurants[products[0].id]
+
+            for product in products[1:]:
+                suitable_restaurants_ids = list(
+                    set(suitable_restaurants_ids)
+                    & set(product_for_restaurants[product.id])
+                )
+            order.suitable_restaurants_ids = suitable_restaurants_ids
+        return orders
 
 
 class Order(models.Model):

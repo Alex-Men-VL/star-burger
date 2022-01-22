@@ -128,18 +128,18 @@ def get_order_distance(order_address, restaurant_address, coordinates):
     return order_distance.km
 
 
-def serialize_order(order, product_for_restaurants, restaurants, coordinates):
+def serialize_order(order, restaurants, coordinates):
     products = order.products.all()
-    suitable_restaurants_ids = product_for_restaurants[products[0].id]
-
-    for product in products[1:]:
-        suitable_restaurants_ids = list(
-            set(suitable_restaurants_ids)
-            & set(product_for_restaurants[product.id])
-        )
+    # suitable_restaurants_ids = product_for_restaurants[products[0].id]
+    #
+    # for product in products[1:]:
+    #     suitable_restaurants_ids = list(
+    #         set(suitable_restaurants_ids)
+    #         & set(product_for_restaurants[product.id])
+    #     )
 
     suitable_restaurants = []
-    for restaurant_id in suitable_restaurants_ids:
+    for restaurant_id in order.suitable_restaurants_ids:
         restaurant_attrs = list(
             filter(
                 lambda restaurant: (restaurant['id'] == restaurant_id),
@@ -178,15 +178,7 @@ def get_used_addresses(orders, restaurants):
 def view_orders(request):
     orders = Order.objects.filter(
         status=Order.UNPROCESSED
-    ).get_orders_with_price().prefetch_related('products').order_by('-pk')
-
-    restaurant_menu_items = RestaurantMenuItem.objects.all().values_list(
-        'product',
-        'restaurant'
-    )
-    product_for_restaurants = {}
-    for product_id, restaurant_id in restaurant_menu_items:
-        product_for_restaurants.setdefault(product_id, []).append(restaurant_id)
+    ).fetch_with_price().fetch_with_suitable_restaurants()
 
     restaurants = Restaurant.objects.values('id', 'address', 'name')
     places_addresses = get_used_addresses(orders, restaurants)
@@ -196,7 +188,6 @@ def view_orders(request):
     context = {
         "order_items": [serialize_order(
             order,
-            product_for_restaurants,
             restaurants,
             coordinates
         ) for order in orders],
