@@ -35,7 +35,9 @@ def add_coordinates(address):
     except (RequestException, ValueError):
         pass
     else:
-        coordinates['lon'] = lon
-        coordinates['lat'] = lat
-        coordinates['are_defined'] = True
+        coordinates.update({
+            'lon': lon,
+            'lat': lat,
+            'are_defined': True
+        })
     Coordinate.objects.create(address=address, **coordinates)
