@@ -118,8 +118,8 @@ def get_order_distance(order_address, restaurant_address, coordinates):
             coordinates
         )
     )[0]
-    if (order_coordinates['status'] == Coordinate.NOT_DEFINED
-            or restaurant_coordinates['status'] == Coordinate.NOT_DEFINED):
+    if (not order_coordinates['are_defined']
+            or not restaurant_coordinates['are_defined']):
         return None
     order_distance = distance.distance(
         (order_coordinates['lat'], order_coordinates['lon']),
@@ -192,7 +192,7 @@ def view_orders(request):
     places_addresses = get_used_addresses(orders, restaurants)
     coordinates = Coordinate.objects.filter(
         address__in=places_addresses
-    ).values('address', 'lat', 'lon', 'status')
+    ).values('address', 'lat', 'lon', 'are_defined')
     context = {
         "order_items": [serialize_order(
             order,

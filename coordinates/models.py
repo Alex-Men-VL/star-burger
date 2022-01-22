@@ -3,12 +3,6 @@ from django.utils import timezone
 
 
 class Coordinate(models.Model):
-    DEFINED = 'D'
-    NOT_DEFINED = 'ND'
-    COORDINATE_STATUS_CHOICE = [
-        (DEFINED, 'определены'),
-        (NOT_DEFINED, 'не определены')
-    ]
     address = models.CharField(
         'адрес',
         max_length=100,
@@ -24,11 +18,9 @@ class Coordinate(models.Model):
         null=True,
         blank=True,
     )
-    status = models.CharField(
-        'статус координат',
-        max_length=13,
-        choices=COORDINATE_STATUS_CHOICE,
-        default=NOT_DEFINED
+    are_defined = models.BooleanField(
+        'координаты определены',
+        default=False
     )
     request_date = models.DateTimeField(
         'дата запроса к геокодеру',

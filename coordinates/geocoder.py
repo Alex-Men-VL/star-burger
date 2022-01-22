@@ -36,5 +36,5 @@ def add_coordinates(address):
     else:
         coordinates['lon'] = lon
         coordinates['lat'] = lat
-        coordinates['status'] = Coordinate.DEFINED
+        coordinates['are_defined'] = True
     Coordinate.objects.create(address=address, **coordinates)
