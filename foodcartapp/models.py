@@ -167,7 +167,8 @@ class Order(models.Model):
         max_length=20
     )
     phonenumber = PhoneNumberField(
-        'контактный телефон'
+        'контактный телефон',
+        db_index=True
     )
     products = models.ManyToManyField(
         Product,
