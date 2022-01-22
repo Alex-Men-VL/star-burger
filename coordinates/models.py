@@ -11,7 +11,8 @@ class Coordinate(models.Model):
     ]
     address = models.CharField(
         'адрес',
-        max_length=100
+        max_length=100,
+        unique=True
     )
     lon = models.FloatField(
         'долгота',
