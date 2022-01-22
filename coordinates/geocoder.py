@@ -1,5 +1,6 @@
 import requests
 from django.conf import settings
+from requests.exceptions import RequestException
 
 from coordinates.models import Coordinate
 
@@ -31,7 +32,7 @@ def add_coordinates(address):
     coordinates = {}
     try:
         lon, lat = fetch_coordinates(address)
-    except Exception:
+    except (RequestException, ValueError):
         pass
     else:
         coordinates['lon'] = lon
