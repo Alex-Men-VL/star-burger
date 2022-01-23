@@ -129,15 +129,6 @@ def get_order_distance(order_address, restaurant_address, coordinates):
 
 
 def serialize_order(order, restaurants, coordinates):
-    products = order.products.all()
-    # suitable_restaurants_ids = product_for_restaurants[products[0].id]
-    #
-    # for product in products[1:]:
-    #     suitable_restaurants_ids = list(
-    #         set(suitable_restaurants_ids)
-    #         & set(product_for_restaurants[product.id])
-    #     )
-
     suitable_restaurants = []
     for restaurant_id in order.suitable_restaurants_ids:
         restaurant_attrs = list(

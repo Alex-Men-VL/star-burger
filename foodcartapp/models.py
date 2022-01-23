@@ -136,12 +136,9 @@ class OrderQuerySet(models.QuerySet):
 
     def fetch_with_suitable_restaurants(self):
         orders = self.prefetch_related('products').order_by('-pk')
-        products = []
-        for order in orders:
-            products += list(order.products.all())
-
+        orders_products_ids = orders.values_list('products', flat=True)
         restaurant_menu_items = RestaurantMenuItem.objects.filter(
-            product__in=products
+            product__in=orders_products_ids
         ).values_list(
             'product',
             'restaurant'
