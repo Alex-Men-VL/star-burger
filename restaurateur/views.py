@@ -96,13 +96,6 @@ def view_restaurants(request):
     })
 
 
-class OrderSerializer(ModelSerializer):
-
-    class Meta:
-        model = Order
-        fields = ['id', 'address', 'firstname', 'lastname', 'phonenumber']
-
-
 def get_order_distance(order_address, restaurant_address, coordinates):
     order_coordinates = list(
         filter(
