@@ -138,7 +138,7 @@ class OrderQuerySet(models.QuerySet):
         orders = self.prefetch_related('products').order_by('-pk')
         orders_products_ids = orders.values_list('products', flat=True)
         restaurant_menu_items = RestaurantMenuItem.objects.filter(
-            product__in=orders_products_ids
+            product__in=orders_products_ids, availability=True
         ).values_list(
             'product',
             'restaurant'
