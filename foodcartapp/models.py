@@ -1,6 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import OuterRef, Subquery, Sum
+from django.db.models import Sum
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
