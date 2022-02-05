@@ -144,6 +144,8 @@ parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте. Не стоит использовать значение по-умолчанию, **замените на своё**.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 - `YANDEX_API_KEY` — API ключ Яндекс-геокодера. [Как получить](https://developer.tech.yandex.ru/services/).
+- `ROLLBAR_TOKEN` - токен от [Rollbar](https://rollbar.com).
+- `ROLLBAR_ENVIRONMENT` - окружение, в котором запускается сервер. По умолчанию - `development`.
 
 ## Цели проекта
 
