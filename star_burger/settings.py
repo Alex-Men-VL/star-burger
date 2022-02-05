@@ -1,9 +1,9 @@
 import os
 
 import dj_database_url
-
+import rollbar
 from environs import Env
-
+from git import Repo
 
 env = Env()
 env.read_env()
@@ -41,6 +41,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddlewareExcluding404',
 ]
 
 ROOT_URLCONF = 'star_burger.urls'
@@ -126,4 +127,16 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "bundles"),
 ]
 
-YANDEX_API_KEY = env.str('YANDEX_API_KEY')
+YANDEX_API_KEY = env.str('YANDEX_API_KEY', '')
+
+local_repo = Repo(path=BASE_DIR)
+local_branch = local_repo.active_branch.name
+
+ROLLBAR = {
+    'access_token': env.str('ROLLBAR_TOKEN', ''),
+    'environment': env.str('ROLLBAR_ENVIRONMENT', 'development'),
+    'root': BASE_DIR,
+    'branch': local_branch,
+}
+
+rollbar.init(**ROLLBAR)
