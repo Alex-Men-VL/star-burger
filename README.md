@@ -146,6 +146,7 @@ parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 - `YANDEX_API_KEY` — API ключ Яндекс-геокодера. [Как получить](https://developer.tech.yandex.ru/services/).
 - `ROLLBAR_TOKEN` - токен от [Rollbar](https://rollbar.com).
 - `ROLLBAR_ENVIRONMENT` - окружение, в котором запускается сервер. По умолчанию - `development`.
+- `DATABASE_URL` - URl используемой бд. [Шаблоны URL](https://github.com/jacobian/dj-database-url#:~:text=unlimited%20persistent%20connections.-,URL%20schema,-Engine). По умолчанию используется бд `SQLite`.
 
 ## Цели проекта
 
