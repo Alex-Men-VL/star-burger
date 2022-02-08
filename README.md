@@ -151,6 +151,13 @@ parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 
 ## Инструкция по деплою
 
+- `Домен сайта` — alexmenshikov.xyz
+- `IP` — 5.53.125.150
+- `Имя пользователя` — alex
+- `Место нахождения деплойного скрипта` — /home/alex
+
+### Запуск деплойного скрипта
+
 ```sh
 $ cd /home/alex
 $ ./deploy_star_burger.sh
