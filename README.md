@@ -148,6 +148,14 @@ parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 - `ROLLBAR_ENVIRONMENT` - окружение, в котором запускается сервер. По умолчанию - `development`.
 - `DATABASE_URL` - URl используемой бд. [Шаблоны URL](https://github.com/jacobian/dj-database-url#:~:text=unlimited%20persistent%20connections.-,URL%20schema,-Engine). По умолчанию используется бд `SQLite`.
 
+
+## Инструкция по деплою
+
+```sh
+$ cd /home/alex
+$ ./deploy_star_burger.sh
+```
+
 ## Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
